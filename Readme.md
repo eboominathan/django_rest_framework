@@ -1,5 +1,7 @@
 ### Django Rest Framework 
 
+`To Start From Scratch follow this commands`
+
 ## Create Virtual environment
 `virualenv env`
 
@@ -15,9 +17,12 @@
 
 `pip install djangorestframework`
  
+ ## Create App
+
+`python manage.py startapp app_name`
 
 ## Run Server
 
-`python manage.py runserver
+`python manage.py runserver`
 
 
