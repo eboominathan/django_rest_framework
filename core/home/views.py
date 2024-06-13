@@ -1,8 +1,10 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import viewsets
 
 from home.models import Person
-from home.serializers import PersonSerializer
+from home.serializers import PersonSerializer, LoginSerializer
 
 
 @api_view(['GET', 'POST'])
@@ -20,42 +22,104 @@ def index(request):
         return Response(courses)
 
 
-@api_view(['GET', 'POST', 'PUT','PATCH','DELETE'])
-def person(request):
-     if request.method == 'GET':
-        objs = Person.objects.filter(color__isnull = False)
+@api_view(['POST'])
+def login(request):
+    data = request.data
+    serialiazer = LoginSerializer(data=data)
+    if serialiazer.is_valid():
+        data = serialiazer.validated_data
+        return Response({'message': 'success'})
+    return Response(serialiazer.errors)
+
+
+class PersonAPI(APIView):
+
+    def get(self):
+        objs = Person.objects.filter(color__isnull=False)
         objs = Person.objects.all()
         serializer = PersonSerializer(objs, many=True)
         return Response(serializer.data)
-    
-     elif request.method == 'POST':
+
+    def post(self, request):
         data = request.data
         serializer = PersonSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors)
-    
-     elif request.method == 'PUT':
+
+    def put(self, request):
         data = request.data
         serializer = PersonSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors)
-    
-     elif request.method == 'PATCH':
+
+    def patch(self, request):
         data = request.data
         obj = Person.objects.get(id=data['id'])
-        serializer = PersonSerializer(obj,data=data,partial = True)
+        serializer = PersonSerializer(obj, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors)
-     else :
+
+    def delete(self, request):
         data = request.data
         obj = Person.objects.get(id=data['id'])
         obj.delete()
-        return Response({'message':'deleted'})
-        
+        return Response({'message': 'deleted'})
+
+
+@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+def person(request):
+    if request.method == 'GET':
+        objs = Person.objects.filter(color__isnull=False)
+        objs = Person.objects.all()
+        serializer = PersonSerializer(objs, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        data = request.data
+        serializer = PersonSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+
+    elif request.method == 'PUT':
+        data = request.data
+        serializer = PersonSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+
+    elif request.method == 'PATCH':
+        data = request.data
+        obj = Person.objects.get(id=data['id'])
+        serializer = PersonSerializer(obj, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    else:
+        data = request.data
+        obj = Person.objects.get(id=data['id'])
+        obj.delete()
+        return Response({'message': 'deleted'})
+
+
+class PeopleViewSet(viewsets.ModelViewSet):
+    serializer_class = PersonSerializer
+    queryset = Person.objects.all()
     
+    def list(self, request):
+        search = request.GET.get('search')
+        queryset = self.queryset
+        if search:
+            queryset = queryset.filter(name__startswith = search)
+            serializer = PersonSerializer(queryset, many=True)
+        return Response({'status':200,'data':serializer.data})
+        
